@@ -1,0 +1,4 @@
+.vagrant*
+config.json
+logs
+*.pyc
