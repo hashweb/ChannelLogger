@@ -65,6 +65,7 @@ class ChannelLogger(callbacks.Plugin):
         self.flusher = self.flush
         world.flushers.append(self.flusher)
         self.logViewerDB = channellogger_model.LogviewerDB()
+        self.logViewerFile = channelLogger_model.LogviewerFile()
 
     def die(self):
         for log in self._logs():
@@ -209,6 +210,7 @@ class ChannelLogger(callbacks.Plugin):
                     self.doLog(irc, channel, '<%s> %s\n', nick, text)
 
                 self.logViewerDB.add_message(msg.nick, msg.prefix, msg.args[1])
+                self.logviewerFile.write_message(msg.nick, msg.args[1])
 
     def doNotice(self, irc, msg):
         (recipients, text) = msg.args
@@ -230,6 +232,7 @@ class ChannelLogger(callbacks.Plugin):
                            '*** %s <%s> has joined %s\n',
                            msg.nick, msg.prefix, channel)
                 self.logViewerDB.add_join(msg.nick, msg.prefix)
+                self.logViewerFile.write_join(msg.nick, msg.prefix)
 
     def doKick(self, irc, msg):
         if len(msg.args) == 3:
@@ -256,6 +259,7 @@ class ChannelLogger(callbacks.Plugin):
                            '*** %s <%s> has left %s%s\n',
                            msg.nick, msg.prefix, channel, reason)
                 self.logViewerDB.add_part(msg.nick, msg.prefix)
+                self.logViewerFile.write_part(msg.nick, msg.prefix)
 
     def doMode(self, irc, msg):
         channel = msg.args[0]
@@ -286,6 +290,7 @@ class ChannelLogger(callbacks.Plugin):
                                '*** %s <%s> has quit IRC%s\n',
                                msg.nick, msg.prefix, reason)
                     self.logViewerDB.add_quit(msg.nick, msg.prefix)
+                    self.logViewerFile.write_quit(msg.nick, msg.prefix)
 
     def outFilter(self, irc, msg):
         # Gotta catch my own messages *somehow* :)
