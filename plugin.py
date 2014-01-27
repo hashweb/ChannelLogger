@@ -210,7 +210,7 @@ class ChannelLogger(callbacks.Plugin):
                     self.doLog(irc, channel, '<%s> %s\n', nick, text)
 
                 self.logViewerDB.add_message(msg.nick, msg.prefix, msg.args[1])
-                self.logviewerFile.write_message(msg.nick, msg.args[1])
+                self.logViewerFile.write_message(msg.nick, msg.args[1])
 
     def doNotice(self, irc, msg):
         (recipients, text) = msg.args
