@@ -10,6 +10,8 @@ if not os.path.exists('config.json'):
 	print "First a config file needs to be created......"
 	userName = raw_input('Please enter your user name (pref your OS username): ')
 	userPass = getpass.getpass('Please enter your password for the Postgresql database (won\'t echo)');
+	logPath = raw_input('Please select location for your log folder')
+	logPath = (logPath or "logs")
 	with open('config.json', 'w') as configFile:
 		configText = """
 {
@@ -18,9 +20,12 @@ if not os.path.exists('config.json'):
 		"dbname": "logs_stats",
 		"user": "%s",
 		"password": "%s"
+	},
+	"logs": {
+		"folderPath": "%s"
 	}
 }
-	""" % (userName, userPass, userName)
+	""" % (userName, userPass, )
 		configFile.write(configText)
 	confirm = raw_input("Are you running this script from the host machine? yes/no: ")
 	if (confirm == "yes"):

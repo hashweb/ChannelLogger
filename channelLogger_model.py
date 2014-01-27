@@ -84,7 +84,7 @@ class LogviewerFile:
 			with open('plugins/ChannelLogger/config.json') as data:
 				config = json.load(data)
 
-			self.logPath = config['logs']['folderPaths']
+			self.logPath = config['logs']['folderPath']
 		except IOError as e:
 			sys.exit("Error! No config file supplied, please create a config.json file in the root")
 
@@ -92,21 +92,21 @@ class LogviewerFile:
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
-			logFile.write("%s <%s> %s" % (time_stamp, user, msg))
+			logFile.write("%s <%s> %s\n" % (time_stamp, user, msg))
 
-	def write_join(self, user, host):
+	def write_join(self, user, host, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			logFile.write("%s --> <%s> (%s) joins %s \n" % (time_stamp, user, host, channel))
 
-	def write_part(self, user, host):
+	def write_part(self, user, host, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			logFile.write("%s <-- <%s> (%s) parts %s \n" % (time_stamp, user, host, channel))
 
-	def write_quit(self, user, host):
+	def write_quit(self, user, host, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
