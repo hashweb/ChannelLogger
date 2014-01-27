@@ -92,7 +92,7 @@ class LogviewerFile:
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
-			logFile.write("%s <%s> %s" % (time_stamp, user, msg))
+			logFile.write("%s <%s> %s \n" % (time_stamp, user, msg))
 
 	def write_join(self, user, host, channel):
 		time_stamp = time.strftime("%H:%M:%S")
