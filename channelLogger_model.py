@@ -84,7 +84,7 @@ class LogviewerFile:
 			with open('plugins/ChannelLogger/config.json') as data:
 				config = json.load(data)
 
-			self.logPath = config['logs']['folderPaths']
+			self.logPath = config['logs']['folderPath']
 		except IOError as e:
 			sys.exit("Error! No config file supplied, please create a config.json file in the root")
 
