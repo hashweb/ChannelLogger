@@ -8,6 +8,11 @@ import psycopg2
 class LogviewerDB:
 
 	def __init__(self):
+		# Will only work on UNIX
+		if (hasattr(time, 'tzset')):
+			os.environ['TZ'] = 'Europe/London'
+			time.tzset()
+			
 		# DB connection string
 		try:
 			with open('plugins/ChannelLogger/config.json') as data:
