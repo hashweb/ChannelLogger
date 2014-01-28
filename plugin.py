@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###
 # Copyright (c) 2002-2004, Jeremiah Fincher
 # Copyright (c) 2009-2010, James McCoy
@@ -30,6 +31,7 @@
 
 import os
 import time
+import chardet
 from cStringIO import StringIO
 
 import channellogger_model
@@ -65,6 +67,33 @@ class ChannelLogger(callbacks.Plugin):
         world.flushers.append(self.flusher)
         self.logViewerDB = channellogger_model.LogviewerDB()
         self.logViewerFile = channellogger_model.LogviewerFile()
+
+    def to_unicode_or_bust(self, obj, encoding='utf-8'):
+        if isinstance(obj, basestring):
+            if not isinstance(obj, unicode):
+                obj = unicode(obj, encoding)
+
+        return obj
+
+    def decode(self, bytes):
+        try:
+            text = bytes.decode('utf-8')
+        except UnicodeDecodeError:
+            try:
+                text = bytes.decode('iso-8859-1')
+            except UnicodeDecodeError:
+                text = bytes.decode('cp1252')
+        return text
+
+    def encode(self, bytes):
+        try:
+            text = bytes.encode('utf-8')
+        except UnicodeEncodeError:
+            try:
+                text = bytes.encode('iso-8859-1')
+            except UnicodeEncodeError:
+                text = bytes.encode('cp1252')
+        return text
 
     def die(self):
         for log in self._logs():
@@ -207,9 +236,13 @@ class ChannelLogger(callbacks.Plugin):
                                '* %s %s\n', nick, ircmsgs.unAction(msg))
                 else:
                     self.doLog(irc, channel, '<%s> %s\n', nick, text)
-
-                self.logViewerDB.add_message(msg.nick, msg.prefix, msg.args[1])
-                self.logViewerFile.write_message(msg.nick, msg.args[1])
+                
+                message = msg.args[1]
+                print repr(message)
+                print chardet.detect(message)
+                if chardet.detect(message)['encoding'] == 'ascii':
+                    self.logViewerDB.add_message(msg.nick, msg.prefix, message)
+                    self.logViewerFile.write_message(msg.nick, message)
 
     def doNotice(self, irc, msg):
         (recipients, text) = msg.args
