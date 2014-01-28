@@ -33,8 +33,8 @@ import os
 import time
 import chardet
 from cStringIO import StringIO
-
-import channellogger_model
+sys.path.append(os.getcwd() + '/plugins/ChannelLogger')
+import channelLogger_model as channellogger_model
 
 import supybot.conf as conf
 import supybot.world as world
