@@ -33,6 +33,7 @@ import os
 import time
 import chardet
 from cStringIO import StringIO
+import sys
 sys.path.append(os.getcwd() + '/plugins/ChannelLogger')
 import channelLogger_model as channellogger_model
 
