@@ -70,7 +70,7 @@ class LogviewerDB:
 	def check_user_host_exists(self, user, host):
 		self.cursor.execute("SELECT * FROM users WHERE \"user\"= %s AND host=%s", (user, host))
 		if self.cursor.rowcount:
-			return self.cursor.fetchone()[1]
+			return self.cursor.fetchone()[0]
 		else:
 			return False
 
