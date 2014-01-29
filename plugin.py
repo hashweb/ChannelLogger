@@ -46,6 +46,7 @@ import supybot.ircdb as ircdb
 import supybot.irclib as irclib
 import supybot.ircmsgs as ircmsgs
 import supybot.ircutils as ircutils
+import supybot.schedule as schedule
 import supybot.registry as registry
 import supybot.callbacks as callbacks
 from supybot.i18n import PluginInternationalization, internationalizeDocstring
@@ -72,6 +73,15 @@ class LogsToDB(callbacks.Plugin):
         self.logViewerDB = channellogger_model.LogviewerDB()
         self.logViewerFile = channellogger_model.LogviewerFile()
         self.currentUsers = 0
+        def myEventCaller():
+            self.addCount(irc)
+        schedule.addPeriodicEvent(myEventCaller, 600, 'mySpamEvent')
+
+
+    def addCount(self, irc):
+        for chan in irc.state.channels.keys():
+            self.logViewerDB.add_count(len(irc.state.channels[chan].users), chan)
+
 
     def to_unicode_or_bust(self, obj, encoding='utf-8'):
         if isinstance(obj, basestring):
@@ -243,16 +253,10 @@ class LogsToDB(callbacks.Plugin):
                     self.doLog(irc, channel, '<%s> %s\n', nick, text)
                 
                 message = msg.args[1]
-                print msg.prefix
-                if msg.prefix == 'Jayflux!~Jason@unaffiliated/jayflux' and re.match('.setCount \d+', str(msg)):
-                    print 'Captured Count!'
-                    count = re.search('\d+', msg).group(0)
-                    self.count = int(count)
-                    irc.reply(str('Thanks %s, current count to to: %s' % (msg.nick, count)))
                 print repr(message)
                 print chardet.detect(message)
                 if chardet.detect(message)['encoding'] == 'ascii':
-                    self.logViewerDB.add_message(msg.nick, msg.prefix, message)
+                    self.logViewerDB.add_message(msg.nick, msg.prefix, message, channel)
                     self.logViewerFile.write_message(msg.nick, message)
 
     def doNotice(self, irc, msg):
@@ -261,16 +265,16 @@ class LogsToDB(callbacks.Plugin):
             if irc.isChannel(channel):
                 self.doLog(irc, channel, '-%s- %s\n', msg.nick, text)
 
-    def setcount(self, irc, msg, args, count):
+
+    def getcount(self, irc, msg, args):
         """<count>
 
         Returns a random quote from <channel>.  <channel> is only necessary if
         the message isn't sent in the channel itself.
         """
-        print args
-        irc.reply('hello World')
+        irc.reply(str(len(irc.state.channels["#web"].users)))
 
-    setcount = wrap(setcount, ['int'])
+    getcount = wrap(getcount)
 
     def doNick(self, irc, msg):
         oldNick = msg.nick
@@ -285,7 +289,7 @@ class LogsToDB(callbacks.Plugin):
                 self.doLog(irc, channel,
                            '*** %s <%s> has joined %s\n',
                            msg.nick, msg.prefix, channel)
-                self.logViewerDB.add_join(msg.nick, msg.prefix)
+                self.logViewerDB.add_join(msg.nick, msg.prefix, channel)
                 self.logViewerFile.write_join(msg.nick, msg.prefix, channel)
 
     def doKick(self, irc, msg):
@@ -312,7 +316,7 @@ class LogsToDB(callbacks.Plugin):
                 self.doLog(irc, channel,
                            '*** %s <%s> has left %s%s\n',
                            msg.nick, msg.prefix, channel, reason)
-                self.logViewerDB.add_part(msg.nick, msg.prefix)
+                self.logViewerDB.add_part(msg.nick, msg.prefix, channel)
                 self.logViewerFile.write_part(msg.nick, msg.prefix, channel)
 
     def doMode(self, irc, msg):
@@ -343,7 +347,7 @@ class LogsToDB(callbacks.Plugin):
                     self.doLog(irc, channel,
                                '*** %s <%s> has quit IRC%s\n',
                                msg.nick, msg.prefix, reason)
-                    self.logViewerDB.add_quit(msg.nick, msg.prefix)
+                    self.logViewerDB.add_quit(msg.nick, msg.prefix, channel)
                     self.logViewerFile.write_quit(msg.nick, msg.prefix, channel)
 
     def outFilter(self, irc, msg):
