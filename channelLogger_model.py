@@ -15,7 +15,7 @@ class LogviewerDB:
 			
 		# DB connection string
 		try:
-			with open('plugins/ChannelLogger/config.json') as data:
+			with open('plugins/LogsToDB/config.json') as data:
 				config = json.load(data)
 
 			conn_string = "host='%s' dbname='%s' user='%s' password='%s'" % (config['db']['host'], config['db']['dbname'], config['db']['user'], config['db']['password'])
@@ -86,7 +86,7 @@ class LogviewerFile:
 	def __init__(self):
 		# Get Logfile Path
 		try:
-			with open('plugins/ChannelLogger/config.json') as data:
+			with open('plugins/LogsToDB/config.json') as data:
 				config = json.load(data)
 
 			self.logPath = config['logs']['folderPath']

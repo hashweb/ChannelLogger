@@ -31,12 +31,15 @@
 
 import os
 import time
+import re
+import sys
+
 import chardet
 from cStringIO import StringIO
-import sys
-sys.path.append(os.getcwd() + '/plugins/ChannelLogger')
+sys.path.append(os.getcwd() + '/plugins/LogsToDB')
 import channelLogger_model as channellogger_model
 
+from supybot.commands import *
 import supybot.conf as conf
 import supybot.world as world
 import supybot.ircdb as ircdb
@@ -46,7 +49,7 @@ import supybot.ircutils as ircutils
 import supybot.registry as registry
 import supybot.callbacks as callbacks
 from supybot.i18n import PluginInternationalization, internationalizeDocstring
-_ = PluginInternationalization('ChannelLogger')
+_ = PluginInternationalization('LogsToDB')
 
 class FakeLog(object):
     def flush(self):
@@ -56,10 +59,10 @@ class FakeLog(object):
     def write(self, s):
         return
 
-class ChannelLogger(callbacks.Plugin):
+class LogsToDB(callbacks.Plugin):
     noIgnore = True
     def __init__(self, irc):
-        self.__parent = super(ChannelLogger, self)
+        self.__parent = super(LogsToDB, self)
         self.__parent.__init__(irc)
         self.lastMsgs = {}
         self.lastStates = {}
@@ -68,6 +71,7 @@ class ChannelLogger(callbacks.Plugin):
         world.flushers.append(self.flusher)
         self.logViewerDB = channellogger_model.LogviewerDB()
         self.logViewerFile = channellogger_model.LogviewerFile()
+        self.currentUsers = 0
 
     def to_unicode_or_bust(self, obj, encoding='utf-8'):
         if isinstance(obj, basestring):
@@ -225,7 +229,7 @@ class ChannelLogger(callbacks.Plugin):
                 except KeyError:
                     logChannelMessages = True
                 nick = msg.nick or irc.nick
-                if msg.tagged('ChannelLogger__relayed'):
+                if msg.tagged('LogsToDB__relayed'):
                     (nick, text) = text.split(' ', 1)
                     nick = nick[1:-1]
                     msg.args = (recipients, text)
@@ -239,6 +243,12 @@ class ChannelLogger(callbacks.Plugin):
                     self.doLog(irc, channel, '<%s> %s\n', nick, text)
                 
                 message = msg.args[1]
+                print msg.prefix
+                if msg.prefix == 'Jayflux!~Jason@unaffiliated/jayflux' and re.match('.setCount \d+', str(msg)):
+                    print 'Captured Count!'
+                    count = re.search('\d+', msg).group(0)
+                    self.count = int(count)
+                    irc.reply(str('Thanks %s, current count to to: %s' % (msg.nick, count)))
                 print repr(message)
                 print chardet.detect(message)
                 if chardet.detect(message)['encoding'] == 'ascii':
@@ -250,6 +260,17 @@ class ChannelLogger(callbacks.Plugin):
         for channel in recipients.split(','):
             if irc.isChannel(channel):
                 self.doLog(irc, channel, '-%s- %s\n', msg.nick, text)
+
+    def setcount(self, irc, msg, args, count):
+        """<count>
+
+        Returns a random quote from <channel>.  <channel> is only necessary if
+        the message isn't sent in the channel itself.
+        """
+        print args
+        irc.reply('hello World')
+
+    setcount = wrap(setcount, ['int'])
 
     def doNick(self, irc, msg):
         oldNick = msg.nick
@@ -337,5 +358,5 @@ class ChannelLogger(callbacks.Plugin):
         return msg
 
 
-Class = ChannelLogger
+Class = LogsToDB
 # vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
