@@ -78,8 +78,6 @@ class LogviewerDB:
 
 	# Check if user exists then return the user ID, if not return false
 	def check_user_host_exists(self, user, host):
-		print repr(user)
-		print repr(host)
 		self.cursor.execute("SELECT * FROM users WHERE \"user\"= %s AND \"host\"= %s", (user, host))
 		if self.cursor.rowcount:
 			return self.cursor.fetchone()[0]
@@ -88,7 +86,6 @@ class LogviewerDB:
 
 
 	def get_channel_id(self, channel):
-		print repr(channel)
 		self.cursor.execute("SELECT id FROM channels WHERE channel_name = %s", (channel,))
 		if self.cursor.rowcount:
 			return self.cursor.fetchone()[0]
