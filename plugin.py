@@ -80,7 +80,7 @@ class LogsToDB(callbacks.Plugin):
 
     def addCount(self, irc):
         for chan in irc.state.channels.keys():
-            self.logViewerDB.add_count(len(irc.state.channels[chan].users), chan)
+            self.logViewerDB.add_count(len(irc.state.channels[chan].users), chan, irc.state.channels[chan].topic)
 
 
     def to_unicode_or_bust(self, obj, encoding='utf-8'):
@@ -272,7 +272,8 @@ class LogsToDB(callbacks.Plugin):
         Returns a random quote from <channel>.  <channel> is only necessary if
         the message isn't sent in the channel itself.
         """
-        irc.reply(str(len(irc.state.channels["#web"].users)))
+        # irc.reply(str(len(irc.state.channels["#web"].users)))
+        print irc.state.channels["#web"].topic
 
     getcount = wrap(getcount)
 

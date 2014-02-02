@@ -34,10 +34,11 @@ class LogviewerDB:
 		self.conn = conn
 		print "connected!\n"
 
-	def add_count(self, count, channel):
+	def add_count(self, count, channel, topic):
 		count = str(count)
+		topic = str(topic)
 		channel_id = self.get_channel_id(channel)
-		self.cursor.execute("INSERT INTO user_count (count, channel_id) VALUES (%s, %s)", (count, channel_id))
+		self.cursor.execute("INSERT INTO user_count (count, channel_id, topic) VALUES (%s, %s, %s)", (count, channel_id, topic))
 		self.conn.commit()
 
 	def add_message(self, user, host, msg, channel):
