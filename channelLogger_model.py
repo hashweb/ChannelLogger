@@ -116,28 +116,28 @@ class LogviewerFile:
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = "%s <%s> %s\n" % (time_stamp, user, msg)
-			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]))
+			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]) + '\n')
 
 	def write_join(self, user, host, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = "%s --> <%s> (%s) joins %s \n" % (time_stamp, user, host, channel)
-			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]))
+			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]) + '\n')
 
 	def write_part(self, user, host, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = "%s <-- <%s> (%s) parts %s \n" % (time_stamp, user, host, channel)
-			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]))
+			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]) + '\n')
 
 	def write_quit(self, user, host, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = "%s <-- <%s> (%s) quits %s \n" % (time_stamp, user, host, channel)
-			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]))
+			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]) + '\n')
 
 
 def main():
