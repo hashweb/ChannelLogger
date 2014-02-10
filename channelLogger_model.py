@@ -2,6 +2,7 @@
 import sys
 import json
 import os
+import string
 import time
 import psycopg2
 
@@ -108,29 +109,35 @@ class LogviewerFile:
 		except IOError as e:
 			sys.exit("Error! No config file supplied, please create a config.json file in the root")
 
+		self.all_bytes = string.maketrans('', '')
+
 	def write_message(self, user, msg):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
-			logFile.write("%s <%s> %s\n" % (time_stamp, user, msg))
+			msg = "%s <%s> %s\n" % (time_stamp, user, msg)
+			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]))
 
 	def write_join(self, user, host, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
-			logFile.write("%s --> <%s> (%s) joins %s \n" % (time_stamp, user, host, channel))
+			msg = "%s --> <%s> (%s) joins %s \n" % (time_stamp, user, host, channel)
+			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]))
 
 	def write_part(self, user, host, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
-			logFile.write("%s <-- <%s> (%s) parts %s \n" % (time_stamp, user, host, channel))
+			msg = "%s <-- <%s> (%s) parts %s \n" % (time_stamp, user, host, channel)
+			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]))
 
 	def write_quit(self, user, host, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
-			logFile.write("%s <-- <%s> (%s) quits %s \n" % (time_stamp, user, host, channel))
+			msg = "%s <-- <%s> (%s) quits %s \n" % (time_stamp, user, host, channel)
+			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]))
 
 
 def main():
