@@ -289,7 +289,6 @@ class LogsToDB(callbacks.Plugin):
                 self.doLog(irc, channel,
                            '*** %s <%s> has joined %s\n',
                            msg.nick, msg.prefix, channel)
-                self.logViewerDB.add_join(msg.nick, msg.prefix, channel)
                 self.logViewerFile.write_join(msg.nick, msg.prefix, channel)
 
     def doKick(self, irc, msg):
@@ -299,6 +298,7 @@ class LogsToDB(callbacks.Plugin):
             (channel, target) = msg.args
             kickmsg = ''
 
+        print msg
         if kickmsg:
             self.doLog(irc, channel,
                        '*** %s was kicked by %s (%s)\n',
@@ -329,6 +329,9 @@ class LogsToDB(callbacks.Plugin):
                        '*** %s sets mode: %s %s\n',
                        msg.nick or msg.prefix, msg.args[1],
                         ' '.join(msg.args[2:]))
+            if (msg.args[1] == '+b'):
+                self.logViewerFile.write_ban(msg.nick, msg.prefix, msg.args[1], ' '.join(msg.args[2:]))
+
 
     def doTopic(self, irc, msg):
         if len(msg.args) == 1:
