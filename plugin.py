@@ -79,6 +79,7 @@ class LogsToDB(callbacks.Plugin):
 
 
     def addCount(self, irc):
+        "Periodically check the amount of users in the channel every 10 minutes"
         for chan in irc.state.channels.keys():
             self.logViewerDB.add_count(len(irc.state.channels[chan].users), chan, irc.state.channels[chan].topic)
 
@@ -253,8 +254,6 @@ class LogsToDB(callbacks.Plugin):
                     self.doLog(irc, channel, '<%s> %s\n', nick, text)
                 
                 message = msg.args[1]
-                print repr(message)
-                print chardet.detect(message)
                 if chardet.detect(message)['encoding'] == 'ascii':
                     self.logViewerDB.add_message(msg.nick, msg.prefix, message, channel)
                     self.logViewerFile.write_message(msg.nick, message)
@@ -299,13 +298,16 @@ class LogsToDB(callbacks.Plugin):
         else:
             (channel, target) = msg.args
             kickmsg = ''
+
         if kickmsg:
             self.doLog(irc, channel,
                        '*** %s was kicked by %s (%s)\n',
                        target, msg.nick, kickmsg)
+            self.logViewerFile.write_kick(target, msg.nick, channel)
         else:
             self.doLog(irc, channel,
-                       '*** %s was kicked by %s\n', target, msg.nick)
+                       '*** %s was kicked by %s\n', target, msg.nick, channel)
+            self.logViewerFile.write_kick(target, msg.nick)
 
     def doPart(self, irc, msg):
         if len(msg.args) > 1:

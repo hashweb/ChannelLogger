@@ -57,6 +57,9 @@ class LogviewerDB:
 	def add_emote(self, user, host, msg, channel):
 		self.__add_message(user, host, msg, 'emote', channel)
 
+	def add_kick(self, msg):
+		print msg
+
 	def __add_message(self, user, host, msg, action, channel):
 		# Was this message from a user we already have in our database?
 		# If so return the userID.
@@ -137,6 +140,13 @@ class LogviewerFile:
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = "%s <-- <%s> (%s) quits %s \n" % (time_stamp, user, host, channel)
+			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]) + '\n')
+
+	def write_kick(self, target, nick, channel):
+		time_stamp = time.strftime("%H:%M:%S")
+		dateStamp = time.strftime("%Y-%m-%d")
+		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
+			msg = "%s -- %s has kicked %s from %s \n" % (time_stamp, nick, target, channel)
 			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]) + '\n')
 
 
