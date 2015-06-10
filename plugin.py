@@ -331,6 +331,8 @@ class LogsToDB(callbacks.Plugin):
                         ' '.join(msg.args[2:]))
             if (msg.args[1] == '+b'):
                 self.logViewerFile.write_ban(msg.nick, msg.prefix, msg.args[1], ' '.join(msg.args[2:]))
+            elif (msg.args[1] == '-b'):
+                self.logViewerFile.write_unban(msg.nick, msg.prefix, msg.args[1], ' '.join(msg.args[2:]))
 
 
     def doTopic(self, irc, msg):

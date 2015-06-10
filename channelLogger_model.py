@@ -154,6 +154,13 @@ class LogviewerFile:
 			msg = '%s %s sets mode: %s %s\n' % (time_stamp, nick, mode, target)
 			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]) + '\n')
 
+	def write_unban(self, nick, host, mode, target):
+		time_stamp = time.strftime("%H:%M:%S")
+		dateStamp = time.strftime("%Y-%m-%d")
+		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
+			msg = '%s %s sets mode: %s %s\n' % (time_stamp, nick, mode, target)
+			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]) + '\n')
+
 
 def main():
 
