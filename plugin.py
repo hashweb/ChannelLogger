@@ -329,10 +329,12 @@ class LogsToDB(callbacks.Plugin):
                        '*** %s sets mode: %s %s\n',
                        msg.nick or msg.prefix, msg.args[1],
                         ' '.join(msg.args[2:]))
-            if (msg.args[1] == '+b'):
-                self.logViewerFile.write_ban(msg.nick, msg.prefix, msg.args[1], ' '.join(msg.args[2:]))
+            if (msg.args[1] == '+b'):                
+                self.logViewerFile.write_ban(msg.nick, msg.prefix, msg.args[1], ' '.join(msg.args[2:]), channel)
+                self.logViewerDB.write_ban(msg.nick, msg.prefix, msg.args[1], ' '.join(msg.args[2:]), channel)
             elif (msg.args[1] == '-b'):
-                self.logViewerFile.write_unban(msg.nick, msg.prefix, msg.args[1], ' '.join(msg.args[2:]))
+                self.logViewerFile.write_unban(msg.nick, msg.prefix, msg.args[1], ' '.join(msg.args[2:]), channel)
+                self.logViewerDB.write_unban(msg.nick, msg.prefix, msg.args[1], ' '.join(msg.args[2:]), channel)
 
 
     def doTopic(self, irc, msg):

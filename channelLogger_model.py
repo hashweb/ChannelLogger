@@ -5,6 +5,7 @@ import os
 import string
 import time
 import psycopg2
+import re
 
 class LogviewerDB:
 
@@ -79,6 +80,30 @@ class LogviewerDB:
 			self.cursor.execute("INSERT INTO messages (\"user\", \"action\", \"channel_id\") VALUES (%s, %s, %s)", (userID, action, channel_id))
 		self.conn.commit()
 
+
+	def write_ban(self, nick, host, mode, target, channel):
+		# check channel exists, if not get_channel_id will generate an ID
+		channel_id = self.get_channel_id(channel)
+		# Sometimes users can be kicked to another channel because of join/quit floos, make sure we strip of the ban forwarding
+		
+		if (len(re.split(r'(\$#.*)', target)) > 1):
+			banmask = re.split(r'(\$#.*)', target)[0]
+			forwarded_channel = re.sub('^\$', '', re.split(r'(\$#.*)', target)[1])
+			self.cursor.execute("INSERT INTO bans (banmask, banned_by, channel, reason) values (%s, %s, %s, %s)", (banmask, nick, channel_id, "Join/Quit flood, user forwarded to " + forwarded_channel))
+		else:
+			banmask = re.split(r'(\$#.*)', target)[0]
+			self.cursor.execute("INSERT INTO bans (banmask, banned_by, channel) values (%s, %s, %s)", (banmask, nick, channel_id))
+		self.conn.commit()
+
+	def write_unban(self, nick, host, mode, target, channel):
+		# check channel exists, if not get_channel_id will generate an ID
+		channel_id = self.get_channel_id(channel)
+		self.cursor.execute("UPDATE bans SET still_banned = FALSE WHERE channel = %s AND banmask = %s", (channel_id, target))
+		self.conn.commit()
+
+
+	# UTILITY FUNCTIONS
+
 	# Check if user exists then return the user ID, if not return false
 	def check_user_host_exists(self, user, host):
 		self.cursor.execute("SELECT * FROM users WHERE \"user\"= %s AND \"host\"= %s", (user, host))
@@ -96,6 +121,14 @@ class LogviewerDB:
 			self.cursor.execute("INSERT INTO channels (channel_name) VALUES (%s)", (channel,))
 			self.conn.commit()
 			return self.get_channel_id(channel)
+
+	# Probably don't need this actually
+	def get_banned_row_id(self, banmask):
+		self.cursor.execute("SELECT id FROM bans WHERE banmask = %s", (banmask,))
+		if self.cursor.rowcount:
+			return self.cursor.fetchone()[0]
+
+		return False
 
 
 class LogviewerFile:
@@ -147,14 +180,14 @@ class LogviewerFile:
 			msg = "%s %s has kicked %s from %s \n" % (time_stamp, nick, target, channel)
 			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]) + '\n')
 
-	def write_ban(self, nick, host, mode, target):
+	def write_ban(self, nick, host, mode, target, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = '%s %s sets mode: %s %s\n' % (time_stamp, nick, mode, target)
 			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]) + '\n')
 
-	def write_unban(self, nick, host, mode, target):
+	def write_unban(self, nick, host, mode, target, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
