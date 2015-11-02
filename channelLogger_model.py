@@ -82,13 +82,13 @@ class LogviewerDB:
 
 
 	def add_karma(self, user, host, msg, channel):
-	    for i in re.finditer(r'thanks (\w+)(,:)?|(\w+)(,:)? thanks|cheers (\w+)(,:)?|(\w+)(,:)? cheers|(\w+)(,:\s)?\+\+|(\w+)(,:\s)? \+1', msg):
-            if (filter(None, i.groups())):
-                user = filter(None, i.groups())[0]
-                userID = self.is_user(user)
-                if userID:
-                    self.cursor.execute("update users set karma = karma + 1 where users.id = %s", (userID, ))
-                    self.conn.commit()
+		for i in re.finditer(r'thanks (\w+)(,:)?|(\w+)(,:)? thanks|cheers (\w+)(,:)?|(\w+)(,:)? cheers|(\w+)(,:\s)?\+\+|(\w+)(,:\s)? \+1', msg):
+			if filter(None, i.groups()):
+				user = filter(None, i.groups())[0]
+				userID = self.is_user(user)
+				if userID:
+					self.cursor.execute("update users set karma = karma + 1 where users.id = %s", (userID, ))
+					self.conn.commit()
 
 	def write_ban(self, nick, host, mode, target, channel):
 		# check channel exists, if not get_channel_id will generate an ID
@@ -112,6 +112,12 @@ class LogviewerDB:
 
 
 	# UTILITY FUNCTIONS
+	# Similar to the above function, however if we don't know the user's hostname this function will work that out automatically
+	def is_user(self, username):
+		self.cursor.execute("select users.id from users INNER JOIN messages ON (messages.user = users.id) where users.user IlIKE %s AND messages.action = 'message' ORDER BY messages.timestamp DESC LIMIT 1;", (username,))
+		if self.cursor.rowcount:
+			return self.cursor.fetchone()[0]
+		return False
 
 	# Check if user exists then return the user ID, if not return false
 	def check_user_host_exists(self, user, host):
@@ -120,14 +126,6 @@ class LogviewerDB:
 			return self.cursor.fetchone()[0]
 		else:
 			return False
-
-	# Similar to the above function, however if we don't know the user's hostname this function will work that out automatically
-	def is_user(self, username):
-        self.cursor.execute("select users.id from users INNER JOIN messages ON (messages.user = users.id) where users.user IlIKE %s AND messages.action = 'message' ORDER BY messages.timestamp DESC LIMIT 1;", (username,))
-        if self.cursor.rowcount:
-            return self.cursor.fetchone()[0]
-        else:
-            return False
 
 
 	def get_channel_id(self, channel):
