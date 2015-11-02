@@ -50,7 +50,9 @@ class KarmaUpdater:
 			for i in re.finditer(r'thanks (\w+)(,:)?|(\w+)(,:)? thanks|cheers (\w+)(,:)?|(\w+)(,:)? cheers|(\w+)(,:\s)?\+\+|(\w+)(,:\s)? \+1', message):
 				if (filter(None, i.groups())):
 					user = filter(None, i.groups())[0]
-					if user is not "ok": # small hack for now to stop ok getting karma points
+					if user == "ok" or user == "hmm" or user == "a" or user == "the" or user == "yeah" or user == "css": # small hack for now to stop ok getting karma points
+						break
+					else:
 						userID = self.is_user(user)
 						if userID:
 							print "giving karma to " + user
