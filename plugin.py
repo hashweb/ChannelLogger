@@ -61,6 +61,7 @@ class FakeLog(object):
         return
 
 class LogsToDB(callbacks.Plugin):
+    threaded = True
     noIgnore = True
     def __init__(self, irc):
         self.__parent = super(LogsToDB, self)
@@ -256,6 +257,7 @@ class LogsToDB(callbacks.Plugin):
                 message = msg.args[1]
                 if chardet.detect(message)['encoding'] == 'ascii':
                     self.logViewerDB.add_message(msg.nick, msg.prefix, message, channel)
+                    self.logViewerDB.add_karma(msg.nick, msg.prefix, message, channel)
                     self.logViewerFile.write_message(msg.nick, message)
 
     def doNotice(self, irc, msg):
