@@ -85,10 +85,13 @@ class LogviewerDB:
 		for i in re.finditer(r'thanks (\w+)(,:)?|(\w+)(,:)? thanks|cheers (\w+)(,:)?|(\w+)(,:)? cheers|(\w+)(,:\s)?\+\+|(\w+)(,:\s)? \+1', msg):
 			if filter(None, i.groups()):
 				user = filter(None, i.groups())[0]
-				userID = self.is_user(user)
-				if userID:
-					self.cursor.execute("update users set karma = karma + 1 where users.id = %s", (userID, ))
-					self.conn.commit()
+				if user == "ok" or user == "hmm" or user == "a" or user == "the" or user == "yeah" or user == "css": # small hack for now to stop ok getting karma points
+					break
+				else:
+					userID = self.is_user(user)
+					if userID:
+						self.cursor.execute("update users set karma = karma + 1 where users.id = %s", (userID, ))
+						self.conn.commit()
 
 	def write_ban(self, nick, host, mode, target, channel):
 		# check channel exists, if not get_channel_id will generate an ID
