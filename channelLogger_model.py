@@ -89,7 +89,7 @@ class LogviewerDB:
 				del self.karmaList[i]
 
 
-	def add_karma(self, user, host, msg, channel):
+	def add_karma(self, username, host, msg, channel):
 		for i in re.finditer(r'thanks (\w+)(,:)?|(\w+)(,:)? thanks|cheers (\w+)(,:)?|(\w+)(,:)? cheers|(\w+)(,:\s)?\+\+|(\w+)(,:\s)? \+1', msg):
 			if filter(None, i.groups()):
 				user = filter(None, i.groups())[0]
@@ -100,9 +100,12 @@ class LogviewerDB:
 					if userID:
 						self.check_karma() # to be honest this could be called anywhere, lets put it here so its not called so often
 						if (user not in self.karmaList):
+							print "Giving karma to " + user
 							self.cursor.execute("update users set karma = karma + 1 where users.id = %s", (userID, ))
 							self.conn.commit()
 							self.karmaList[user] = datetime.now()
+						else:
+							print "no karma given to " + user + " as already given earlier"
 
 
 
