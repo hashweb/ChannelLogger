@@ -6,6 +6,8 @@ import string
 import time
 import psycopg2
 import re
+from datetime import datetime
+from datetime import timedelta
 
 class LogviewerDB:
 
@@ -34,6 +36,7 @@ class LogviewerDB:
 		# conn.curser will return a cursor object, you can use this to perform queries
 		self.cursor = conn.cursor()
 		self.conn = conn
+		self.karmaList = {}
 		print "connected!\n"
 
 	def add_count(self, count, channel, topic):
@@ -80,6 +83,11 @@ class LogviewerDB:
 			self.cursor.execute("INSERT INTO messages (\"user\", \"action\", \"channel_id\") VALUES (%s, %s, %s)", (userID, action, channel_id))
 		self.conn.commit()
 
+	def check_karma(self):
+		for i in self.karmaList:
+			if (datetime.now() - self.karmaList[i]) > timedelta(1):
+				del self.karmaList[i]
+
 
 	def add_karma(self, user, host, msg, channel):
 		for i in re.finditer(r'thanks (\w+)(,:)?|(\w+)(,:)? thanks|cheers (\w+)(,:)?|(\w+)(,:)? cheers|(\w+)(,:\s)?\+\+|(\w+)(,:\s)? \+1', msg):
@@ -90,8 +98,14 @@ class LogviewerDB:
 				else:
 					userID = self.is_user(user)
 					if userID:
-						self.cursor.execute("update users set karma = karma + 1 where users.id = %s", (userID, ))
-						self.conn.commit()
+						self.check_karma() # to be honest this could be called anywhere, lets put it here so its not called so often
+						if (user not in self.karmaList):
+							self.cursor.execute("update users set karma = karma + 1 where users.id = %s", (userID, ))
+							self.conn.commit()
+							self.karmaList[user] = datetime.now()
+
+
+
 
 	def write_ban(self, nick, host, mode, target, channel):
 		# check channel exists, if not get_channel_id will generate an ID
