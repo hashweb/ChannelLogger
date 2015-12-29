@@ -256,8 +256,12 @@ class LogsToDB(callbacks.Plugin):
                 
                 message = msg.args[1]
                 if chardet.detect(message)['encoding'] == 'ascii':
-                    self.logViewerDB.add_message(msg.nick, msg.prefix, message, channel)
-                    self.logViewerDB.add_karma(msg.nick, msg.prefix, message, channel)
+                    try:
+                        self.logViewerDB.add_message(msg.nick, msg.prefix, message, channel)
+                        self.logViewerDB.add_karma(msg.nick, msg.prefix, message, channel)
+                    except:
+                        print "writing to database failed"
+                    #  Write to file even if DB connection fails
                     self.logViewerFile.write_message(msg.nick, message)
 
     def doNotice(self, irc, msg):
