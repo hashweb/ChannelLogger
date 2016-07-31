@@ -22,11 +22,11 @@ class LogviewerDB:
 
 			conn_string = "host='%s' dbname='%s' user='%s' password='%s'" % (config['db']['host'], config['db']['dbname'], config['db']['user'], config['db']['password'])
 		except IOError as e:
-			print os.getcwd()
+			print(os.getcwd())
 			sys.exit("Error! No config file supplied, please create a config.json file in the root")
 		
 		# Print connection string
-		print "Connecting to database\n -> %s" % (conn_string)
+		print("Connecting to database\n -> %s" % (conn_string))
 		
 		# get a connection
 		conn = psycopg2.connect(conn_string)
@@ -34,7 +34,7 @@ class LogviewerDB:
 		# conn.curser will return a cursor object, you can use this to perform queries
 		self.cursor = conn.cursor()
 		self.conn = conn
-		print "connected!\n"
+		print("connected!\n")
 
 	def add_count(self, count, channel, topic):
 		count = str(count)
@@ -143,56 +143,56 @@ class LogviewerFile:
 		except IOError as e:
 			sys.exit("Error! No config file supplied, please create a config.json file in the root")
 
-		self.all_bytes = string.maketrans('', '')
+		# self.all_bytes = string.maketrans('', '')
 
 	def write_message(self, user, msg):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = "%s <%s> %s\n" % (time_stamp, user, msg)
-			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]) + '\n')
+			logFile.write(msg + '\n')
 
 	def write_join(self, user, host, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = "%s --> <%s> (%s) joins %s \n" % (time_stamp, user, host, channel)
-			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]) + '\n')
+			logFile.write(msg + '\n')
 
 	def write_part(self, user, host, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = "%s <-- <%s> (%s) parts %s \n" % (time_stamp, user, host, channel)
-			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]) + '\n')
+			logFile.write(msg + '\n')
 
 	def write_quit(self, user, host, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = "%s <-- <%s> (%s) quits %s \n" % (time_stamp, user, host, channel)
-			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]) + '\n')
+			logFile.write(msg + '\n')
 
 	def write_kick(self, target, nick, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = "%s %s has kicked %s from %s \n" % (time_stamp, nick, target, channel)
-			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]) + '\n')
+			logFile.write(msg + '\n')
 
 	def write_ban(self, nick, host, mode, target, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = '%s %s sets mode: %s %s\n' % (time_stamp, nick, mode, target)
-			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]) + '\n')
+			logFile.write(msg + '\n')
 
 	def write_unban(self, nick, host, mode, target, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = '%s %s sets mode: %s %s\n' % (time_stamp, nick, mode, target)
-			logFile.write(msg.translate(self.all_bytes, self.all_bytes[:32]) + '\n')
+			logFile.write(msg + '\n')
 
 
 def main():
