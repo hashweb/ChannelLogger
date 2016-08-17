@@ -35,9 +35,9 @@ import re
 import sys
 
 import chardet
-from cStringIO import StringIO
+from io import StringIO
 sys.path.append(os.getcwd() + '/plugins/LogsToDB')
-import channelLogger_model as channellogger_model
+from . import channelLogger_model as channellogger_model
 
 from supybot.commands import *
 import supybot.conf as conf
@@ -80,14 +80,14 @@ class LogsToDB(callbacks.Plugin):
 
     def addCount(self, irc):
         "Periodically check the amount of users in the channel every 10 minutes"
-        for chan in irc.state.channels.keys():
+        for chan in list(irc.state.channels.keys()):
             self.logViewerDB.add_count(len(irc.state.channels[chan].users), chan, irc.state.channels[chan].topic)
 
 
     def to_unicode_or_bust(self, obj, encoding='utf-8'):
-        if isinstance(obj, basestring):
-            if not isinstance(obj, unicode):
-                obj = unicode(obj, encoding)
+        if isinstance(obj, str):
+            if not isinstance(obj, str):
+                obj = str(obj, encoding)
 
         return obj
 
@@ -138,8 +138,8 @@ class LogsToDB(callbacks.Plugin):
         self.lastStates.clear()
 
     def _logs(self):
-        for logs in self.logs.itervalues():
-            for log in logs.itervalues():
+        for logs in self.logs.values():
+            for log in logs.values():
                 yield log
 
     def flush(self):
@@ -147,7 +147,7 @@ class LogsToDB(callbacks.Plugin):
         for log in self._logs():
             try:
                 log.flush()
-            except ValueError, e:
+            except ValueError as e:
                 if e.args[0] != 'I/O operation on a closed file':
                     self.log.exception('Odd exception:')
 
@@ -177,8 +177,8 @@ class LogsToDB(callbacks.Plugin):
         return logDir
 
     def checkLogNames(self):
-        for (irc, logs) in self.logs.items():
-            for (channel, log) in logs.items():
+        for (irc, logs) in list(self.logs.items()):
+            for (channel, log) in list(logs.items()):
                 if self.registryValue('rotateLogs', channel):
                     name = self.getLogName(channel)
                     if name != log.name:
@@ -254,9 +254,8 @@ class LogsToDB(callbacks.Plugin):
                     self.doLog(irc, channel, '<%s> %s\n', nick, text)
                 
                 message = msg.args[1]
-                if chardet.detect(message)['encoding'] == 'ascii':
-                    self.logViewerDB.add_message(msg.nick, msg.prefix, message, channel)
-                    self.logViewerFile.write_message(msg.nick, message)
+                self.logViewerDB.add_message(msg.nick, msg.prefix, message, channel)
+                self.logViewerFile.write_message(msg.nick, message)
 
     def doNotice(self, irc, msg):
         (recipients, text) = msg.args
@@ -272,14 +271,14 @@ class LogsToDB(callbacks.Plugin):
         the message isn't sent in the channel itself.
         """
         # irc.reply(str(len(irc.state.channels["#web"].users)))
-        print irc.state.channels["#web"].topic
+        print(irc.state.channels["#web"].topic)
 
     getcount = wrap(getcount)
 
     def doNick(self, irc, msg):
         oldNick = msg.nick
         newNick = msg.args[0]
-        for (channel, c) in irc.state.channels.iteritems():
+        for (channel, c) in irc.state.channels.items():
             if newNick in c.users:
                 self.doLog(irc, channel,
                            '*** %s is now known as %s\n', oldNick, newNick)
@@ -298,7 +297,7 @@ class LogsToDB(callbacks.Plugin):
             (channel, target) = msg.args
             kickmsg = ''
 
-        print msg
+        print(msg)
         if kickmsg:
             self.doLog(irc, channel,
                        '*** %s was kicked by %s (%s)\n',
@@ -351,7 +350,7 @@ class LogsToDB(callbacks.Plugin):
             reason = ""
         if not isinstance(irc, irclib.Irc):
             irc = irc.getRealIrc()
-        for (channel, chan) in self.lastStates[irc].channels.iteritems():
+        for (channel, chan) in self.lastStates[irc].channels.items():
             if(self.registryValue('showJoinParts', channel)):
                 if msg.nick in chan.users:
                     self.doLog(irc, channel,
