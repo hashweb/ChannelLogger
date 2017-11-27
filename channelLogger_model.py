@@ -5,6 +5,7 @@ import os
 import string
 import time
 import psycopg2
+import logging
 import re
 
 class LogviewerDB:
@@ -14,7 +15,12 @@ class LogviewerDB:
 		if (hasattr(time, 'tzset')):
 			os.environ['TZ'] = 'Europe/London'
 			time.tzset()
-			
+
+		self.logging = logging.basicConfig(filename='combined.log',level=logging.DEBUG)
+		self.__connect()
+
+	def __connect(self):
+		self.logging.debug("Attempting to connect with database...")
 		# DB connection string
 		try:
 			with open('plugins/LogsToDB/config.json') as data:
@@ -23,6 +29,7 @@ class LogviewerDB:
 			conn_string = "host='%s' dbname='%s' user='%s' password='%s'" % (config['db']['host'], config['db']['dbname'], config['db']['user'], config['db']['password'])
 		except IOError as e:
 			print(os.getcwd())
+			self.logging.error("Error! No config file supplied, please create a config.json file in the root")
 			sys.exit("Error! No config file supplied, please create a config.json file in the root")
 		
 		# Print connection string
@@ -34,14 +41,19 @@ class LogviewerDB:
 		# conn.curser will return a cursor object, you can use this to perform queries
 		self.cursor = conn.cursor()
 		self.conn = conn
-		print("connected!\n")
+		self.logging.debug("connected!")
 
 	def add_count(self, count, channel, topic):
 		count = str(count)
 		topic = str(topic)
 		channel_id = self.get_channel_id(channel)
-		self.cursor.execute("INSERT INTO user_count (count, channel_id, topic) VALUES (%s, %s, %s)", (count, channel_id, topic))
-		self.conn.commit()
+		try:
+			self.cursor.execute("INSERT INTO user_count (count, channel_id, topic) VALUES (%s, %s, %s)", (count, channel_id, topic))
+			self.conn.commit()
+		except psycopg2.InterfaceError as e:
+			self.logging.error('Error within add_count: ' + e.message)
+			self.logging.debug('Attempting to reconnect with database...')
+			self.__connect()
 
 	def add_message(self, user, host, msg, channel):
 		self.__add_message(user, host, msg, 'message', channel)
@@ -60,75 +72,104 @@ class LogviewerDB:
 
 
 	def __add_message(self, user, host, msg, action, channel):
-		# Was this message from a user we already have in our database?
-		# If so return the userID.
-		userID = self.check_user_host_exists(user, host) or False
 
-		# If userID is False, store the new combo then get back the userID
-		if not userID:
-			self.cursor.execute("INSERT INTO users (\"user\", \"host\") VALUES (%s, %s)", (user, host))
+		try:
+			# Was this message from a user we already have in our database?
+			# If so return the userID.
+			userID = self.check_user_host_exists(user, host) or False
+
+			# If userID is False, store the new combo then get back the userID
+			if not userID:
+				self.cursor.execute("INSERT INTO users (\"user\", \"host\") VALUES (%s, %s)", (user, host))
+				self.conn.commit()
+				# We should now have an ID for our new user/host combo
+				userID = self.check_user_host_exists(user, host);
+
+			# check channel exists, if not get_channel_id will generate an ID
+			channel_id = self.get_channel_id(channel)
+
+			if (action == 'message' or action == 'emote'):	
+				self.cursor.execute("INSERT INTO messages (\"user\", \"content\", \"action\", \"channel_id\") VALUES (%s, %s, %s, %s)", (userID, msg, action, channel_id))
+			else:
+				self.cursor.execute("INSERT INTO messages (\"user\", \"action\", \"channel_id\") VALUES (%s, %s, %s)", (userID, action, channel_id))
 			self.conn.commit()
-			# We should now have an ID for our new user/host combo
-			userID = self.check_user_host_exists(user, host);
-
-		# check channel exists, if not get_channel_id will generate an ID
-		channel_id = self.get_channel_id(channel)
-
-		if (action == 'message' or action == 'emote'):	
-			self.cursor.execute("INSERT INTO messages (\"user\", \"content\", \"action\", \"channel_id\") VALUES (%s, %s, %s, %s)", (userID, msg, action, channel_id))
-		else:
-			self.cursor.execute("INSERT INTO messages (\"user\", \"action\", \"channel_id\") VALUES (%s, %s, %s)", (userID, action, channel_id))
-		self.conn.commit()
-
+		except psycopg2.InterfaceError as e:
+			self.logging.error('Error within add_message: ' + e.message)
+			self.logging.debug('Attempting to reconnect with database...')
+			self.__connect()			
 
 	def write_ban(self, nick, host, mode, target, channel):
-		# check channel exists, if not get_channel_id will generate an ID
-		channel_id = self.get_channel_id(channel)
-		# Sometimes users can be kicked to another channel because of join/quit floos, make sure we strip of the ban forwarding
-		
-		if (len(re.split(r'(\$#.*)', target)) > 1):
-			banmask = re.split(r'(\$#.*)', target)[0]
-			forwarded_channel = re.sub('^\$', '', re.split(r'(\$#.*)', target)[1])
-			self.cursor.execute("INSERT INTO bans (banmask, banned_by, channel, reason) values (%s, %s, %s, %s)", (banmask, nick, channel_id, "Join/Quit flood, user forwarded to " + forwarded_channel))
-		else:
-			banmask = re.split(r'(\$#.*)', target)[0]
-			self.cursor.execute("INSERT INTO bans (banmask, banned_by, channel) values (%s, %s, %s)", (banmask, nick, channel_id))
-		self.conn.commit()
+		try:
+			# check channel exists, if not get_channel_id will generate an ID
+			channel_id = self.get_channel_id(channel)
+			# Sometimes users can be kicked to another channel because of join/quit floos, make sure we strip of the ban forwarding
+			
+			if (len(re.split(r'(\$#.*)', target)) > 1):
+				banmask = re.split(r'(\$#.*)', target)[0]
+				forwarded_channel = re.sub('^\$', '', re.split(r'(\$#.*)', target)[1])
+				self.cursor.execute("INSERT INTO bans (banmask, banned_by, channel, reason) values (%s, %s, %s, %s)", (banmask, nick, channel_id, "Join/Quit flood, user forwarded to " + forwarded_channel))
+			else:
+				banmask = re.split(r'(\$#.*)', target)[0]
+				self.cursor.execute("INSERT INTO bans (banmask, banned_by, channel) values (%s, %s, %s)", (banmask, nick, channel_id))
+			self.conn.commit()
+		except psycopg2.InterfaceError as e:
+			self.logging.error('Error within write_ban: ' + e.message)
+			self.logging.debug('Attempting to reconnect with database...')
+			self.__connect()
 
 	def write_unban(self, nick, host, mode, target, channel):
-		# check channel exists, if not get_channel_id will generate an ID
-		channel_id = self.get_channel_id(channel)
-		self.cursor.execute("UPDATE bans SET still_banned = FALSE WHERE channel = %s AND banmask = %s", (channel_id, target))
-		self.conn.commit()
-
+		try:
+			# check channel exists, if not get_channel_id will generate an ID
+			channel_id = self.get_channel_id(channel)
+			self.cursor.execute("UPDATE bans SET still_banned = FALSE WHERE channel = %s AND banmask = %s", (channel_id, target))
+			self.conn.commit()
+		except psycopg2.InterfaceError as e:
+			self.logging.error('Error within write_unban: ' + e.message)
+			self.logging.debug('Attempting to reconnect with database...')
+			self.__connect()
 
 	# UTILITY FUNCTIONS
 
 	# Check if user exists then return the user ID, if not return false
 	def check_user_host_exists(self, user, host):
-		self.cursor.execute("SELECT * FROM users WHERE \"user\"= %s AND \"host\"= %s", (user, host))
-		if self.cursor.rowcount:
-			return self.cursor.fetchone()[0]
-		else:
-			return False
+		try:
+			self.cursor.execute("SELECT * FROM users WHERE \"user\"= %s AND \"host\"= %s", (user, host))
+			if self.cursor.rowcount:
+				return self.cursor.fetchone()[0]
+			else:
+				return False
+		except psycopg2.InterfaceError as e:
+			self.logging.error('Error within check_user_host_exists: ' + e.message)
+			self.logging.debug('Attempting to reconnect with database...')
+			self.__connect()
 
 
 	def get_channel_id(self, channel):
-		self.cursor.execute("SELECT id FROM channels WHERE channel_name = %s", (channel,))
-		if self.cursor.rowcount:
-			return self.cursor.fetchone()[0]
-		else:
-			self.cursor.execute("INSERT INTO channels (channel_name) VALUES (%s)", (channel,))
-			self.conn.commit()
-			return self.get_channel_id(channel)
+		try:
+			self.cursor.execute("SELECT id FROM channels WHERE channel_name = %s", (channel,))
+			if self.cursor.rowcount:
+				return self.cursor.fetchone()[0]
+			else:
+				self.cursor.execute("INSERT INTO channels (channel_name) VALUES (%s)", (channel,))
+				self.conn.commit()
+				return self.get_channel_id(channel)
+		except psycopg2.InterfaceError as e:
+			self.logging.error('Error within get_channel_id: ' + e.message)
+			self.logging.debug('Attempting to reconnect with database...')
+			self.__connect()
 
 	# Probably don't need this actually
 	def get_banned_row_id(self, banmask):
-		self.cursor.execute("SELECT id FROM bans WHERE banmask = %s", (banmask,))
-		if self.cursor.rowcount:
-			return self.cursor.fetchone()[0]
+		try:
+			self.cursor.execute("SELECT id FROM bans WHERE banmask = %s", (banmask,))
+			if self.cursor.rowcount:
+				return self.cursor.fetchone()[0]
 
-		return False
+			return False
+		except psycopg2.InterfaceError as e:
+			self.logging.error('Error within get_banned_row_id: ' + e.message)
+			self.logging.debug('Attempting to reconnect with database...')
+			self.__connect()
 
 
 class LogviewerFile:
@@ -193,20 +234,3 @@ class LogviewerFile:
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = '%s %s sets mode: %s %s\n' % (time_stamp, nick, mode, target)
 			logFile.write(msg)
-
-
-def main():
-
-	def resetData(self):
-		self.cursor.execute("DELETE FROM users;")
-		self.cursor.execute("DELETE FROM messages;")
-		self.cursor.execute("DELETE FROM user_count;")
-		self.cursor.execute("DELETE FROM channels;")
-		self.cursor.execute("ALTER SEQUENCE messages_id_seq RESTART WITH 1;")
-		self.cursor.execute("ALTER SEQUENCE users_id_seq RESTART WITH 1;")
-		self.cursor.execute("ALTER SEQUENCE channels_id_seq RESTART WITH 1;")
-		self.cursor.execute("ALTER SEQUENCE user_count_id_seq RESTART WITH 1;")
-		self.conn.commit()
-
-if __name__ == "__main__":
-	main()
