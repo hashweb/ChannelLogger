@@ -6,6 +6,7 @@ import string
 import time
 import psycopg2
 import logging
+import logging.handlers
 import re
 
 class LogviewerDB:
@@ -15,8 +16,8 @@ class LogviewerDB:
 		if (hasattr(time, 'tzset')):
 			os.environ['TZ'] = 'Europe/London'
 			time.tzset()
-
-		logging.basicConfig(filename='combined.log',level=logging.DEBUG)
+		fh = logging.handlers.TimedRotatingFileHandler('combined.log', when='midnight', interval=1, BackupCount=5);
+		logging.basicConfig(level=logging.DEBUG, handlers=[fh])
 		self.__connect()
 
 	def __connect(self):
