@@ -17,7 +17,7 @@ class LogviewerDB:
 			time.tzset()
 
 		self.logging = logging.basicConfig(filename='combined.log',level=logging.DEBUG)
-		self.connect()
+		self.__connect()
 
 	def __connect(self):
 		self.logging.debug("Attempting to connect with database...")
