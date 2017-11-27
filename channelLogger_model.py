@@ -16,7 +16,7 @@ class LogviewerDB:
 		if (hasattr(time, 'tzset')):
 			os.environ['TZ'] = 'Europe/London'
 			time.tzset()
-		fh = logging.handlers.TimedRotatingFileHandler('combined.log', when='midnight', interval=1, BackupCount=5);
+		fh = logging.handlers.TimedRotatingFileHandler('combined.log', when='midnight', interval=1, backupCount=5);
 		logging.basicConfig(level=logging.DEBUG, handlers=[fh])
 		self.__connect()
 
