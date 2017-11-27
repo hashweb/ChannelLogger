@@ -150,49 +150,49 @@ class LogviewerFile:
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = "%s <%s> %s\n" % (time_stamp, user, msg)
-			logFile.write(msg + '\n')
+			logFile.write(msg)
 
 	def write_join(self, user, host, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = "%s --> <%s> (%s) joins %s \n" % (time_stamp, user, host, channel)
-			logFile.write(msg + '\n')
+			logFile.write(msg)
 
 	def write_part(self, user, host, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = "%s <-- <%s> (%s) parts %s \n" % (time_stamp, user, host, channel)
-			logFile.write(msg + '\n')
+			logFile.write(msg)
 
 	def write_quit(self, user, host, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = "%s <-- <%s> (%s) quits %s \n" % (time_stamp, user, host, channel)
-			logFile.write(msg + '\n')
+			logFile.write(msg)
 
 	def write_kick(self, target, nick, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = "%s %s has kicked %s from %s \n" % (time_stamp, nick, target, channel)
-			logFile.write(msg + '\n')
+			logFile.write(msg)
 
 	def write_ban(self, nick, host, mode, target, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = '%s %s sets mode: %s %s\n' % (time_stamp, nick, mode, target)
-			logFile.write(msg + '\n')
+			logFile.write(msg)
 
 	def write_unban(self, nick, host, mode, target, channel):
 		time_stamp = time.strftime("%H:%M:%S")
 		dateStamp = time.strftime("%Y-%m-%d")
 		with open(self.logPath + "/%s.log" % dateStamp, 'a') as logFile:
 			msg = '%s %s sets mode: %s %s\n' % (time_stamp, nick, mode, target)
-			logFile.write(msg + '\n')
+			logFile.write(msg)
 
 
 def main():
