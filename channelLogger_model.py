@@ -16,12 +16,11 @@ class LogviewerDB:
 			os.environ['TZ'] = 'Europe/London'
 			time.tzset()
 
-		self.logging = logging.getLogger("channelLogger")
-		self.logging.basicConfig(filename='combined.log',level=logging.DEBUG)
+		logging.basicConfig(filename='combined.log',level=logging.DEBUG)
 		self.__connect()
 
 	def __connect(self):
-		self.logging.debug("Attempting to connect with database...")
+		logging.debug("Attempting to connect with database...")
 		# DB connection string
 		try:
 			with open('plugins/LogsToDB/config.json') as data:
@@ -30,7 +29,7 @@ class LogviewerDB:
 			conn_string = "host='%s' dbname='%s' user='%s' password='%s'" % (config['db']['host'], config['db']['dbname'], config['db']['user'], config['db']['password'])
 		except IOError as e:
 			print(os.getcwd())
-			self.logging.error("Error! No config file supplied, please create a config.json file in the root")
+			logging.error("Error! No config file supplied, please create a config.json file in the root")
 			sys.exit("Error! No config file supplied, please create a config.json file in the root")
 		
 		# Print connection string
@@ -42,7 +41,7 @@ class LogviewerDB:
 		# conn.curser will return a cursor object, you can use this to perform queries
 		self.cursor = conn.cursor()
 		self.conn = conn
-		self.logging.debug("connected!")
+		logging.debug("connected!")
 
 	def add_count(self, count, channel, topic):
 		count = str(count)
@@ -52,8 +51,8 @@ class LogviewerDB:
 			self.cursor.execute("INSERT INTO user_count (count, channel_id, topic) VALUES (%s, %s, %s)", (count, channel_id, topic))
 			self.conn.commit()
 		except psycopg2.InterfaceError as e:
-			self.logging.error('Error within add_count: ' + e.message)
-			self.logging.debug('Attempting to reconnect with database...')
+			logging.error('Error within add_count: ' + e.message)
+			logging.debug('Attempting to reconnect with database...')
 			self.__connect()
 
 	def add_message(self, user, host, msg, channel):
@@ -95,8 +94,8 @@ class LogviewerDB:
 				self.cursor.execute("INSERT INTO messages (\"user\", \"action\", \"channel_id\") VALUES (%s, %s, %s)", (userID, action, channel_id))
 			self.conn.commit()
 		except psycopg2.InterfaceError as e:
-			self.logging.error('Error within add_message: ' + e.message)
-			self.logging.debug('Attempting to reconnect with database...')
+			logging.error('Error within add_message: ' + e.message)
+			logging.debug('Attempting to reconnect with database...')
 			self.__connect()			
 
 	def write_ban(self, nick, host, mode, target, channel):
@@ -114,8 +113,8 @@ class LogviewerDB:
 				self.cursor.execute("INSERT INTO bans (banmask, banned_by, channel) values (%s, %s, %s)", (banmask, nick, channel_id))
 			self.conn.commit()
 		except psycopg2.InterfaceError as e:
-			self.logging.error('Error within write_ban: ' + e.message)
-			self.logging.debug('Attempting to reconnect with database...')
+			logging.error('Error within write_ban: ' + e.message)
+			logging.debug('Attempting to reconnect with database...')
 			self.__connect()
 
 	def write_unban(self, nick, host, mode, target, channel):
@@ -125,8 +124,8 @@ class LogviewerDB:
 			self.cursor.execute("UPDATE bans SET still_banned = FALSE WHERE channel = %s AND banmask = %s", (channel_id, target))
 			self.conn.commit()
 		except psycopg2.InterfaceError as e:
-			self.logging.error('Error within write_unban: ' + e.message)
-			self.logging.debug('Attempting to reconnect with database...')
+			logging.error('Error within write_unban: ' + e.message)
+			logging.debug('Attempting to reconnect with database...')
 			self.__connect()
 
 	# UTILITY FUNCTIONS
@@ -140,8 +139,8 @@ class LogviewerDB:
 			else:
 				return False
 		except psycopg2.InterfaceError as e:
-			self.logging.error('Error within check_user_host_exists: ' + e.message)
-			self.logging.debug('Attempting to reconnect with database...')
+			logging.error('Error within check_user_host_exists: ' + e.message)
+			logging.debug('Attempting to reconnect with database...')
 			self.__connect()
 
 
@@ -155,8 +154,8 @@ class LogviewerDB:
 				self.conn.commit()
 				return self.get_channel_id(channel)
 		except psycopg2.InterfaceError as e:
-			self.logging.error('Error within get_channel_id: ' + e.message)
-			self.logging.debug('Attempting to reconnect with database...')
+			logging.error('Error within get_channel_id: ' + e.message)
+			logging.debug('Attempting to reconnect with database...')
 			self.__connect()
 
 	# Probably don't need this actually
@@ -168,8 +167,8 @@ class LogviewerDB:
 
 			return False
 		except psycopg2.InterfaceError as e:
-			self.logging.error('Error within get_banned_row_id: ' + e.message)
-			self.logging.debug('Attempting to reconnect with database...')
+			logging.error('Error within get_banned_row_id: ' + e.message)
+			logging.debug('Attempting to reconnect with database...')
 			self.__connect()
 
 
