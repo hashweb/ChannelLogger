@@ -16,7 +16,8 @@ class LogviewerDB:
 			os.environ['TZ'] = 'Europe/London'
 			time.tzset()
 
-		self.logging = logging.basicConfig(filename='combined.log',level=logging.DEBUG)
+		self.logging = logging.getLogger("channelLogger")
+		self.logging.basicConfig(filename='combined.log',level=logging.DEBUG)
 		self.__connect()
 
 	def __connect(self):
