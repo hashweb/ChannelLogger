@@ -17,7 +17,7 @@ class LogviewerDB:
 			os.environ['TZ'] = 'Europe/London'
 			time.tzset()
 		fh = logging.handlers.TimedRotatingFileHandler('combined.log', when='midnight', interval=1, backupCount=5);
-		logging.basicConfig(level=logging.DEBUG, handlers=[fh])
+		logging.basicConfig(level=logging.DEBUG, handlers=[fh], format="%(levelno)s: %(asctime)s -  %(message)s")
 		self.__connect()
 
 	def __connect(self):
